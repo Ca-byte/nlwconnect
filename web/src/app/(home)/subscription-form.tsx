@@ -7,6 +7,9 @@ import { z } from 'zod'
 
 import { Button } from '@/components/Button'
 import { InputField, InputIcon, InputRoot } from '@/components/Input'
+import { subscribeToEvent } from '@/http/api'
+import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
 
 
 const subscriptionSchema = z.object({
@@ -17,6 +20,9 @@ const subscriptionSchema = z.object({
 type SubscriptionSchema = z.infer<typeof subscriptionSchema>
 
 export function SubscriptionForm() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   const {
     register,
     handleSubmit,
@@ -25,8 +31,11 @@ export function SubscriptionForm() {
     resolver: zodResolver(subscriptionSchema),
   })
 
-  function onSubscribe(data: SubscriptionSchema) {
-    console.log(data)
+  async function onSubscribe({ name, email }: SubscriptionSchema) {
+    const referrer = searchParams.get('referrer')
+    const { subscriberId } = await subscribeToEvent({ name, email, referrer })
+
+    router.push(`/invite/${subscriberId}`)
   }
 
   return (
